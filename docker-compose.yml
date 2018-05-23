@@ -1,0 +1,37 @@
+version: "3"
+services:
+    teamcity-server:
+        image: jetbrains/teamcity-server
+        container_name: teamcity-server
+        restart: always
+        volumes:
+            - "/opt/teamcity-server/data:/data/teamcity_server/datadir"
+            - "/opt/teamcity-server/logs:/opt/teamcity/logs"
+        ports:
+            - "8111:8111"
+
+    teamcity-agent:
+        image: jetbrains/teamcity-agent:2017.2.4
+        # container name have to be removed to use scale service feature
+        #container_name: teamcity-agent
+        restart: always
+        privileged: true
+        environment:
+            - SERVER_URL=http://teamcity-server:8111
+            - DOCKER_IN_DOCKER=start
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
+        links:
+            - teamcity-server
+
+    upsource:
+        image: jetbrains/upsource:2018.1.352
+        container_name: upsource
+        restart: always
+        volumes:
+            - "/opt/upsource/data:/opt/upsource/data"
+            - "/opt/upsource/conf:/opt/upsource/conf"
+            - "/opt/upsource/logs:/opt/upsource/logs"
+            - "/opt/upsource/backups:/opt/upsource/backups"
+        ports:
+            - "8080:8080"
